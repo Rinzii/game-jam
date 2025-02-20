@@ -3,7 +3,7 @@
 
 // Use this for reference: https://en.cppreference.com/w/cpp/compiler_support
 
-#include "nimbus/core/common/Compiler.hpp"
+#include "nimbus/core/config/Compiler.hpp"
 
 
 // https://learn.microsoft.com/en-us/cpp/intrinsics/compiler-intrinsics?view=msvc-170
