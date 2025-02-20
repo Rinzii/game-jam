@@ -20,10 +20,9 @@ jobs:
           - { name: "Windows VS2022",           os: windows-2022,   flags: "" }
           - { name: "Linux GCC",                os: ubuntu-latest,  flags: "" }
           - { name: "Linux Clang",              os: ubuntu-latest,  flags: "-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++" }
-          - { name: "macOS 14 AppleClang",      os: macos-14,       flags: "" }
-          - { name: "macOS Latest AppleClang",  os: macos-latest,   flags: "" }
+          - { name: "macOS AppleClang",         os: macos-latest,   flags: "" }
         config:
-          - { name: "Static", flags: "-DBUILD_SHARED_LIBS=FALSE" }
+          - { name: "Static", flags: "" }
 
     steps:
       - name: Checkout
