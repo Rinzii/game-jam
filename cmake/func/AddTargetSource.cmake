@@ -1,5 +1,6 @@
+
 # Helper function to add headers to the global source list
-function(nani_add_headers)
+function(nim_add_headers)
   set(SOURCE_FILES "")
   foreach(header IN LISTS ARGV)
     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/${header}")
@@ -8,7 +9,7 @@ function(nani_add_headers)
 endfunction()
 
 # Helper function to add sources to the global source list
-function(nani_add_sources)
+function(nim_add_sources)
   set(SOURCE_FILES "")
   foreach(source IN LISTS ARGV)
     list(APPEND SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/${source}")

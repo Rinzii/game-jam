@@ -1,3 +1,3 @@
-nani_add_sources(
+nim_add_sources(
     app.rc
 )

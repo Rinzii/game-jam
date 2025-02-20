@@ -1,36 +1,38 @@
-project(fornani-launcher)
-
-if (NOT DEFINED FORNANI_ROOT_DIR)
-    message(FATAL_ERROR "FORNANI_ROOT_DIR has not been specified! Did you some how call the launcher cmake only?")
+if (NOT DEFINED NIMBUS_ROOT_DIR)
+    message(FATAL_ERROR "NIMBUS_ROOT_DIR has not been specified! Did you some how call the launcher target without nimbus?")
 endif ()
 
-add_executable(fornani-launcher)
-set_target_properties(fornani-launcher PROPERTIES OUTPUT_NAME "fornani")
-target_link_libraries(fornani-launcher PRIVATE
-        fornani::deps
-        fornani::game
+project(nimbus_launcher)
+
+add_executable(nimbus_launcher)
+set_target_properties(nimbus_launcher PROPERTIES OUTPUT_NAME "game")
+target_link_libraries(nimbus_launcher PRIVATE
+        nimbus::game
+        nimbus::lib
 )
 
-target_include_directories(fornani-launcher
+if(NIMBUS_BUILD_EDITOR)
+    target_link_libraries(nimbus_launcher PRIVATE
+            nimbus::editor
+    )
+endif()
+
+target_include_directories(nimbus_launcher
         PUBLIC include "${CMAKE_CURRENT_BINARY_DIR}/include"
         PRIVATE "src"
 )
 
-if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU|Clang|IntelLLVM|AppleClang")
-    if ("${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "MSVC") # clang-cl
-        add_compile_options(fornani-launcher INTERFACE /W4056 /W4146 /W4018 /W4056)
-    endif ()
-    add_compile_options(fornani-launcher INTERFACE -Wno-sign-conversion -Wno-format-security)
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-    add_compile_options(fornani-launcher INTERFACE /W4056 /W4146 /W4018 /W4056)
-endif ()
+# Setup Includes
+include(${NIMBUS_ROOT_DIR}/cmake/setup/launcher/CompilerOptions.cmake)
 
+add_subdirectory(include/launcher)
 add_subdirectory(src)
 
+# TODO: Is this even needed anymore?
 if (WIN32)
     if (MSVC)
         set(subsystem $<IF:$<BOOL:$<CONFIG:Debug>>,CONSOLE,WINDOWS>)
-        target_link_options(fornani-launcher PRIVATE
+        target_link_options(nimbus_launcher PRIVATE
                 /SUBSYSTEM:${subsystem}
                 /ENTRY:mainCRTStartup
         )

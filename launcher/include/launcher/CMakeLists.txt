@@ -1,0 +1,1 @@
+nim_add_headers(delete_me.hpp)

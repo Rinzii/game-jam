@@ -1,0 +1,18 @@
+# detect our OS
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    set(NIMBUS_OS_WINDOWS 1)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    set(NIMBUS_OS_LINUX 1)
+elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    set(NIMBUS_OS_MACOS 1)
+elseif(CMAKE_SYSTEM_NAME MATCHES "^k?FreeBSD$")
+    set(NIMBUS_OS_FREEBSD 1)
+elseif(CMAKE_SYSTEM_NAME MATCHES "^OpenBSD$")
+    set(NIMBUS_OS_OPENBSD 1)
+elseif(CMAKE_SYSTEM_NAME MATCHES "^NetBSD$")
+    set(NIMBUS_OS_NETBSD 1)
+else()
+    message(FATAL_ERROR "Unsupported OS: ${CMAKE_SYSTEM_NAME}")
+endif()
+
+message(STATUS "Nimbus - Detected OS        : ${CMAKE_SYSTEM_NAME}")

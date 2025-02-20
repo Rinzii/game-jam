@@ -16,16 +16,6 @@
       }
     },
     {
-      "name": "ninja-gcc",
-      "description": "Build configuration using Ninja Multi-config / gcc",
-      "inherits": "default",
-      "binaryDir": "${sourceDir}/out/gcc",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++"
-      }
-    },
-    {
       "name": "ninja-clang",
       "description": "Build configuration using Ninja Multi-config / clang",
       "inherits": "default",
@@ -33,6 +23,26 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "ninja-msvc",
+      "description": "Build configuration using Ninja Multi-config / msvc (this must be called from a developer console)",
+      "inherits": "default",
+      "binaryDir": "${sourceDir}/out/msvc",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      }
+    },
+    {
+      "name": "ninja-gcc",
+      "description": "Build configuration using Ninja Multi-config / gcc",
+      "inherits": "default",
+      "binaryDir": "${sourceDir}/out/gcc",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
       }
     },
     {
