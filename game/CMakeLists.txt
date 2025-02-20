@@ -19,7 +19,9 @@ target_include_directories(nimbus_game
 )
 
 # Setup Includes
-include(${NIMBUS_ROOT_DIR}/cmake/setup/game/CompilerOptions.cmake)
+include(${NIMBUS_ROOT_DIR}/cmake/setup/game/CompileOptions.cmake)
+include(${NIMBUS_ROOT_DIR}/cmake/setup/game/CompileDefinitions.cmake)
+
 
 
 add_subdirectory(include/game)

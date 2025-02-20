@@ -29,7 +29,8 @@ target_include_directories(nimbus
 )
 
 # Setup Includes
-include(${NIMBUS_ROOT_DIR}/cmake/setup/engine/CompilerOptions.cmake)
+include(${NIMBUS_ROOT_DIR}/cmake/setup/engine/CompileOptions.cmake)
+include(${NIMBUS_ROOT_DIR}/cmake/setup/engine/CompileDefinitions.cmake)
 
 
 add_subdirectory(include/nimbus)

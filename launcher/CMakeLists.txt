@@ -13,7 +13,7 @@ target_link_libraries(nimbus_launcher PRIVATE
 
 if(NIMBUS_BUILD_EDITOR)
     target_link_libraries(nimbus_launcher PRIVATE
-            nimbus::editor
+            editor::lib
     )
 endif()
 
@@ -23,7 +23,9 @@ target_include_directories(nimbus_launcher
 )
 
 # Setup Includes
-include(${NIMBUS_ROOT_DIR}/cmake/setup/launcher/CompilerOptions.cmake)
+include(${NIMBUS_ROOT_DIR}/cmake/setup/launcher/CompileOptions.cmake)
+include(${NIMBUS_ROOT_DIR}/cmake/setup/launcher/CompileDefinitions.cmake)
+
 
 add_subdirectory(include/launcher)
 add_subdirectory(src)
