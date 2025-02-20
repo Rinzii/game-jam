@@ -299,24 +299,13 @@ namespace nim::io {
     } // namespace logger
 } // namespace nim::io
 
-// NOLINTBEGIN
-#if defined(__GNUC__) || defined(__clang__)
-#define INTERNAL_NIM_LOG(logger, level, message, ...)                                                                                                                                                                                         \
-	do { logger.verbose_##level(__func__, __FILE__, __LINE__, message, ##__VA_ARGS__); } while ((void)0, 0)
+#define INTERNAL_NIM_LOG(logger, level, message, ...) \
+do { \
+logger.verbose_##level(__func__, __FILE__, __LINE__, message __VA_OPT__(, __VA_ARGS__)); \
+} while ((void)0, 0)
 
-#define NIM_LOG(logger, message, ...) INTERNAL_NIM_LOG(logger, log, message, ##__VA_ARGS__)
-#define NIM_LOG_ERROR(logger, message, ...) INTERNAL_NIM_LOG(logger, error, message, ##__VA_ARGS__)
-#define NIM_LOG_WARN(logger, message, ...) INTERNAL_NIM_LOG(logger, warn, message, ##__VA_ARGS__)
-#define NIM_LOG_INFO(logger, message, ...) INTERNAL_NIM_LOG(logger, info, message, ##__VA_ARGS__)
-#define NIM_LOG_DEBUG(logger, message, ...) INTERNAL_NIM_LOG(logger, debug, message, ##__VA_ARGS__)
-#else
-#define INTERNAL_NIM_LOG(logger, level, message, ...)                                                                                                                                                                                         \
-	do { logger.verbose_##level(__func__, __FILE__, __LINE__, message, __VA_ARGS__); } while ((void)0, 0)
-
-#define NIM_LOG(logger, message, ...) INTERNAL_NIM_LOG(logger, log, message, __VA_ARGS__)
-#define NIM_LOG_ERROR(logger, message, ...) INTERNAL_NIM_LOG(logger, error, message, __VA_ARGS__)
-#define NIM_LOG_WARN(logger, message, ...) INTERNAL_NIM_LOG(logger, warn, message, __VA_ARGS__)
-#define NIM_LOG_INFO(logger, message, ...) INTERNAL_NIM_LOG(logger, info, message, __VA_ARGS__)
-#define NIM_LOG_DEBUG(logger, message, ...) INTERNAL_NIM_LOG(logger, debug, message, __VA_ARGS__)
-#endif
-// NOLINTEND
+#define NIM_LOG(logger, message, ...)       INTERNAL_NIM_LOG(logger, log, message __VA_OPT__(, __VA_ARGS__))
+#define NIM_LOG_ERROR(logger, message, ...) INTERNAL_NIM_LOG(logger, error, message __VA_OPT__(, __VA_ARGS__))
+#define NIM_LOG_WARN(logger, message, ...)  INTERNAL_NIM_LOG(logger, warn, message __VA_OPT__(, __VA_ARGS__))
+#define NIM_LOG_INFO(logger, message, ...)  INTERNAL_NIM_LOG(logger, info, message __VA_OPT__(, __VA_ARGS__))
+#define NIM_LOG_DEBUG(logger, message, ...) INTERNAL_NIM_LOG(logger, debug, message __VA_OPT__(, __VA_ARGS__))
