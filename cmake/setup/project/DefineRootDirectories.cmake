@@ -1,19 +1,24 @@
 if (NOT DEFINED NIMBUS_ROOT_DIR)
     set(NIMBUS_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Nimbus root directory")
+    message(STATUS "NIMBUS_ROOT_DIR             : ${NIMBUS_ROOT_DIR}")
 endif ()
 
 if (NOT DEFINED NIMBUS_ENGINE_ROOT_DIR)
-    set(NIMBUS_ENGINE_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Nimbus engines root directory")
+    set(NIMBUS_ENGINE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/engine" CACHE STRING "Nimbus engines root directory")
+    message(STATUS "NIMBUS_ENGINE_ROOT_DIR      : ${NIMBUS_ENGINE_ROOT_DIR}")
 endif ()
 
 if (NOT DEFINED NIMBUS_EDITOR_ROOT_DIR)
-    set(NIMBUS_EDITOR_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Nimbus editors root directory")
+    set(NIMBUS_EDITOR_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/editor" CACHE STRING "Nimbus editors root directory")
+    message(STATUS "NIMBUS_EDITOR_ROOT_DIR      : ${NIMBUS_EDITOR_ROOT_DIR}")
 endif ()
 
 if (NOT DEFINED NIMBUS_GAME_ROOT_DIR)
-    set(NIMBUS_GAME_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Nimbus games root directory")
+    set(NIMBUS_GAME_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/game" CACHE STRING "Nimbus games root directory")
+    message(STATUS "NIMBUS_GAME_ROOT_DIR        : ${NIMBUS_GAME_ROOT_DIR}")
 endif ()
 
 if (NOT DEFINED NIMBUS_LAUNCHER_ROOT_DIR)
-    set(NIMBUS_LAUNCHER_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE STRING "Nimbus launchers root directory")
+    set(NIMBUS_LAUNCHER_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/launcher" CACHE STRING "Nimbus launchers root directory")
+    message(STATUS "NIMBUS_LAUNCHER_ROOT_DIR    : ${NIMBUS_LAUNCHER_ROOT_DIR}")
 endif ()

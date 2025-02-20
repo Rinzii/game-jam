@@ -19,9 +19,13 @@ int main() {
 
     NIM_LOG_INFO(main_logger, "Found exe at: {}", exe_dir.string());
 
-    // How to destinguish if we have an editor or not
-#if defined(NIMBUS_CONFIG_HAS_EDITOR)
+    // How to distinguish if we have an editor or not
+#if defined(CONFIG_NIMBUS_HAS_EDITOR)
     NIM_LOG_INFO(main_logger, "Found editor at: {}", exe_dir.string());
+#endif
+
+#if defined(CONFIG_NIMBUS_PRODUCTION)
+    NIM_LOG_INFO(main_logger, "Production build is set!");
 #endif
 
     return 0;

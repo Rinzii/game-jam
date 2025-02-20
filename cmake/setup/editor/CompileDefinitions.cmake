@@ -5,5 +5,5 @@ endif ()
 
 # If editor is being built create a global define that launcher and other areas can use
 if (NIMBUS_BUILD_EDITOR)
-    target_compile_definitions(editor PUBLIC NIMBUS_CONFIG_HAS_EDITOR)
+    target_compile_definitions(editor PUBLIC CONFIG_NIMBUS_HAS_EDITOR)
 endif ()

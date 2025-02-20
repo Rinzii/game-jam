@@ -41,18 +41,43 @@ FixNamespaceComments: true
 IndentPPDirectives: BeforeHash
 IndentWidth: 4
 IncludeCategories:
+  # Headers in "" with .h extension.
+  - Regex: '"([A-Za-z0-9\/-_])+\.h"'
+    Priority: 10
+  # Headers in "" with .hpp extension.
+  - Regex: '"([A-Za-z0-9\/-_])+\.hpp"'
+    Priority: 20
   # Headers in <> with .h extension.
   - Regex: '<([A-Za-z0-9\/-_])+\.h>'
-    Priority: 10
+    Priority: 30
   # Headers in <> with .hpp extension.
   - Regex: '<([A-Za-z0-9\/-_])+\.hpp>'
-    Priority: 20
+    Priority: 40
   # Headers in <> without an extension.
   - Regex: '<([A-Za-z0-9\/-_])+>'
-    Priority: 30
+    Priority: 50
 NamespaceIndentation: All
 PointerAlignment: Middle
 SpaceAfterTemplateKeyword: true
 Standard: c++20
 TabWidth: 4
 UseTab: Always
+AlwaysBreakBeforeMultilineStrings: true
+BinPackArguments: false
+BinPackParameters: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+Cpp11BracedListStyle: false
+DerivePointerAlignment: true
+IncludeBlocks: Regroup
+SortIncludes: CaseInsensitive
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesInParentheses: false
+WhitespaceSensitiveMacros:
+  - NIM_DISABLE_CLANG_WARNING
+  - NIM_ENABLE_CLANG_WARNING_AS_ERROR
+  - NIM_DISABLE_GCC_WARNING
+  - NIM_ENABLE_GCC_WARNING_AS_ERROR
+  - NIM_ENABLE_IGNORE_GCC_WARNING
+  - NIM_DISABLE_IGNORE_GCC_WARNING
+...
