@@ -8,6 +8,10 @@
 #include <algorithm>
 #include <cassert>
 #include <unordered_map>
+#include <cstddef>
+#include <new>
+
+#include <rpmalloc.h>
 
 // design based on Impossibly Fast Event:
 // https://docs.google.com/presentation/d/1Y5JktAemPYNDmVJ5-3f_KQH1LTDmey-YJFAnly0Cxpo/edit?usp=sharing
@@ -16,6 +20,35 @@
 
 namespace nim::core {
     namespace details {
+
+        // Custom STL allocator using rpmalloc/rpfree.
+        template<typename T>
+        struct rpmalloc_allocator {
+            using value_type = T;
+
+            rpmalloc_allocator() noexcept = default;
+
+            template<typename U>
+            rpmalloc_allocator(const rpmalloc_allocator<U>&) noexcept {}
+
+            T* allocate(std::size_t n) {
+                if (n > static_cast<std::size_t>(-1) / sizeof(T))
+                    throw std::bad_alloc();
+                if (auto ptr = static_cast<T*>(rpmalloc(n * sizeof(T))))
+                    return ptr;
+                throw std::bad_alloc();
+            }
+
+            void deallocate(T* p, std::size_t) noexcept {
+                rpfree(p);
+            }
+
+            template<typename U>
+            bool operator==(const rpmalloc_allocator<U>&) const noexcept { return true; }
+            template<typename U>
+            bool operator!=(const rpmalloc_allocator<U>&) const noexcept { return false; }
+        };
+
         struct ConnectionBase;
 
         struct EventBase {
@@ -24,30 +57,25 @@ namespace nim::core {
                 void *func;
             };
 
-            // We are able to optimize space by taking advantage of "struct of arrays" containers as both will always have the same size
-            mutable std::vector<call> calls;
-            mutable std::vector<ConnectionBase *> connections;
+            // Use the custom allocator for both vectors.
+            mutable std::vector<call, rpmalloc_allocator<call>> calls;
+            mutable std::vector<ConnectionBase*, rpmalloc_allocator<ConnectionBase*>> connections;
 
-            // We are able to optimize space by stealing 2 unused bit from our vector size
+            // We are able to optimize space by stealing 2 unused bits from our vector size.
             mutable bool calling = false;
             mutable bool dirty = false;
 
             EventBase() = default;
-
             ~EventBase();
-
             EventBase(const EventBase &) = delete;
-
             EventBase &operator=(const EventBase &) = delete;
-
             EventBase(EventBase &&other) noexcept;
-
             EventBase &operator=(EventBase &&other) noexcept;
         };
 
         struct BlockedConnection {
             const EventBase *sig = nullptr;
-            EventBase::call call = {.object = nullptr, .func = nullptr};
+            EventBase::call call = { .object = nullptr, .func = nullptr };
         };
 
         struct ConnectionBase {
@@ -57,13 +85,11 @@ namespace nim::core {
             };
 
             size_t idx;
-
             // space can be optimized by stealing bits from index as it's impossible to support max uint64 number of slots
             bool blocked = false;
             bool owned = false;
 
-            ConnectionBase(const EventBase *sig, size_t idx) : event(sig), idx(idx) {
-            }
+            ConnectionBase(const EventBase *sig, size_t idx) : event(sig), idx(idx) { }
 
             virtual ~ConnectionBase() {
                 if (!blocked) {
@@ -74,8 +100,12 @@ namespace nim::core {
                         event->connections[idx] = nullptr;
                         event->dirty = true;
                     }
-                } else { delete blocked_conn; }
-                // NOLINTEND
+                    // NOLINTEND
+                } else {
+                    // If the connection is blocked, destroy and free the blocked connection storage.
+                    blocked_conn->~BlockedConnection();
+                    rpfree(blocked_conn);
+                }
             }
 
             void set_event(const EventBase *sig) {
@@ -94,7 +124,9 @@ namespace nim::core {
                     // NOLINTBEGIN
                     const EventBase *orig_sig = event;
                     event = nullptr;
-                    blocked_conn = new BlockedConnection;
+                    // Allocate BlockedConnection via rpmalloc and use placement new.
+                    blocked_conn = static_cast<BlockedConnection*>(rpmalloc(sizeof(BlockedConnection)));
+                    new (blocked_conn) BlockedConnection();
                     blocked_conn->sig = orig_sig;
                     std::swap(blocked_conn->call, orig_sig->calls[idx]);
                     // NOLINTEND
@@ -106,12 +138,23 @@ namespace nim::core {
                     // NOLINTBEGIN
                     const EventBase *orig_sig = blocked_conn->sig;
                     std::swap(blocked_conn->call, orig_sig->calls[idx]);
-                    delete blocked_conn;
+                    // Manually call destructor and free the memory allocated for blocked_conn.
+                    blocked_conn->~BlockedConnection();
+                    rpfree(blocked_conn);
                     blocked_conn = nullptr;
                     event = orig_sig;
                     // NOLINTEND
                     blocked = false;
                 }
+            }
+
+            // Override operator new/delete to use rpmalloc/rpfree for connection objects.
+            void* operator new(size_t size) {
+                return rpmalloc(size);
+            }
+
+            void operator delete(void* ptr) {
+                rpfree(ptr);
             }
         };
 
@@ -129,12 +172,12 @@ namespace nim::core {
         };
 
         inline EventBase::~EventBase() {
-            for (ConnectionBase *c: connections) {
+            for (ConnectionBase *c : connections) {
                 if (c != nullptr) {
                     if (c->owned) {
                         c->set_event(nullptr);
                     } else {
-                        delete c; // NOLINT
+                        delete c;
                     }
                 }
             }
@@ -145,7 +188,7 @@ namespace nim::core {
               , connections(std::move(other.connections))
               , calling(other.calling)
               , dirty(other.dirty) {
-            for (ConnectionBase *c: connections) {
+            for (ConnectionBase *c : connections) {
                 if (c != nullptr) {
                     c->set_event(this);
                 }
@@ -157,7 +200,7 @@ namespace nim::core {
             connections = std::move(other.connections);
             calling = other.calling;
             dirty = other.dirty;
-            for (ConnectionBase *c: connections) {
+            for (ConnectionBase *c : connections) {
                 if (c != nullptr) {
                     c->set_event(this);
                 }
@@ -169,7 +212,7 @@ namespace nim::core {
     template<typename F>
     struct Event;
 
-    // A connection without auto disconnection
+    // A connection without auto disconnection.
     struct ConnectionRaw {
         details::ConnectionBase *ptr = nullptr;
     };
@@ -183,20 +226,14 @@ namespace nim::core {
         }
 
         void block() const { ptr->block(); }
-
         void unblock() const { ptr->unblock(); }
 
         Connection() = default;
-
         ~Connection() { disconnect(); }
-
         Connection(const Connection &) = delete;
-
         Connection &operator=(const Connection &) = delete;
 
-        Connection(Connection &&other) noexcept
-            : ptr(other.ptr) { other.ptr = nullptr; }
-
+        Connection(Connection &&other) noexcept : ptr(other.ptr) { other.ptr = nullptr; }
         Connection &operator=(Connection &&other) noexcept {
             disconnect();
             ptr = other.ptr;
@@ -230,7 +267,6 @@ namespace nim::core {
 
             if (!recursion) {
                 calling = false;
-
                 if (dirty) {
                     dirty = false;
                     // remove all empty slots while patching the stored index in the connection
@@ -263,7 +299,7 @@ namespace nim::core {
             call.func = reinterpret_cast<void *>(+[](void *obj, A... args) {
                 ((*static_cast<C **>(obj))->*PMF)(args...);
             });
-            auto *conn = new details::ConnectionBase(this, idx); // NOLINT
+            auto *conn = new details::ConnectionBase(this, idx); // uses overridden operator new (rpmalloc)
             connections.emplace_back(conn);
             return {conn};
         }
@@ -280,7 +316,7 @@ namespace nim::core {
             size_t idx = connections.size();
             auto &call = calls.emplace_back();
             call.func = call.object = reinterpret_cast<void *>(func); // NOLINT
-            auto *conn = new details::ConnectionBase(this, idx); // NOLINT
+            auto *conn = new details::ConnectionBase(this, idx); // uses overridden operator new (rpmalloc)
             connections.emplace_back(conn);
             return {conn};
         }
@@ -291,9 +327,10 @@ namespace nim::core {
 
         template<typename F>
         ConnectionRaw connect(F &&functor) const {
-            using f_type = std::remove_pointer_t<std::remove_reference_t<F> >;
-            if constexpr (std::is_convertible_v<f_type, void(*)(A...)>) { return connect(+functor); } else if constexpr
-            (std::is_lvalue_reference_v<F>) {
+            using f_type = std::remove_pointer_t<std::remove_reference_t<F>>;
+            if constexpr (std::is_convertible_v<f_type, void(*)(A...)>) {
+                return connect(+functor);
+            } else if constexpr (std::is_lvalue_reference_v<F>) {
                 size_t idx = connections.size();
                 auto &call = calls.emplace_back();
                 // NOLINTNEXTLINE
@@ -301,7 +338,7 @@ namespace nim::core {
                     (*static_cast<f_type **>(obj))->operator()(args...);
                 });
                 call.object = &functor;
-                auto *conn = new details::ConnectionBase(this, idx); // NOLINT
+                auto *conn = new details::ConnectionBase(this, idx); // uses overridden operator new (rpmalloc)
                 connections.emplace_back(conn);
                 return {conn};
             } else if constexpr (sizeof(std::remove_pointer_t<f_type>) <= sizeof(void *)) {
@@ -313,22 +350,18 @@ namespace nim::core {
                     static_cast<f_type *>(obj)->operator()(args...);
                 });
                 new(&call.object) f_type(std::forward<F>(functor));
-                using conn_t = std::conditional_t<std::is_trivially_destructible_v<F>, details::ConnectionBase,
-                    details::ConnectionNontrivial<F> >;
-                details::ConnectionBase *conn = new conn_t(this, idx); // NOLINT
+                using conn_t = std::conditional_t<std::is_trivially_destructible_v<F>,
+                    details::ConnectionBase,
+                    details::ConnectionNontrivial<F>>;
+                details::ConnectionBase *conn = new conn_t(this, idx); // uses overridden operator new (rpmalloc)
                 connections.emplace_back(conn);
                 return {conn};
             } else {
                 struct unique {
                     f_type *ptr;
-
-                    // TODO: This might not work with explicit. Verify later.
                     explicit unique(f_type *ptr) : ptr(ptr) {}
-
                     unique(const unique &) = delete;
-
                     unique(unique &&) = delete;
-
                     ~unique() { delete ptr; }
                 };
 
@@ -339,7 +372,7 @@ namespace nim::core {
                     static_cast<unique *>(obj)->ptr->operator()(args...);
                 });
                 new(&call.object) unique{new f_type(std::forward<F>(functor))};
-                details::ConnectionBase *conn = new details::ConnectionNontrivial<unique>(this, idx); // NOLINT
+                details::ConnectionBase *conn = new details::ConnectionNontrivial<unique>(this, idx); // uses overridden operator new (rpmalloc)
                 connections.emplace_back(conn);
                 return {conn};
             }

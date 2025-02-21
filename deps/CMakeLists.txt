@@ -10,6 +10,9 @@ FetchContent_Declare(sfml
 )
 FetchContent_MakeAvailable(sfml)
 
+# rpmalloc
+add_subdirectory(rpmalloc)
+
 # Dear ImGui
 add_subdirectory(imgui)
 
@@ -70,6 +73,7 @@ target_link_libraries(nimbus_deps INTERFACE
         SFML::Window
         SFML::Audio
         ImGui-SFML::ImGui-SFML
+        rpmalloc::rpmalloc
 
         djson::djson
         ccmath::ccmath

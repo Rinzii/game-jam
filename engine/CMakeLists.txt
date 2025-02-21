@@ -18,6 +18,9 @@ target_compile_definitions(nimbus
 )
 
 target_link_libraries(nimbus
+        PUBLIC
+        rpmalloc::rpmalloc
+
         PRIVATE
         nimbus::deps
 )

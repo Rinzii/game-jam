@@ -3,6 +3,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <rpmalloc.h>
+
 #include <optional>
 #include <cstdlib>
 
@@ -13,6 +15,8 @@ static constexpr auto logFile{"nimbus.log"};
 nim::io::Logger const main_logger{"Main"};
 
 int main() {
+
+    rpmalloc_initialize(); // Needed for rpmalloc to work.
 
     // TODO: Maybe we should just have the entire startup use a config file of some sort to setup the engine and game?
 
@@ -63,5 +67,5 @@ int main() {
         window.display();
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
