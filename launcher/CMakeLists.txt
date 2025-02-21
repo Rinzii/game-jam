@@ -9,13 +9,12 @@ set_target_properties(nimbus_launcher PROPERTIES OUTPUT_NAME "game")
 target_link_libraries(nimbus_launcher PRIVATE
         nimbus::game
         nimbus::lib
+        nimbus::deps
 )
 
 if(NIMBUS_BUILD_EDITOR)
     target_link_libraries(nimbus_launcher PRIVATE
             editor::lib
-            nimbus::game
-            nimbus::deps
     )
 endif()
 
