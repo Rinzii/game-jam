@@ -14,6 +14,8 @@ target_link_libraries(nimbus_launcher PRIVATE
 if(NIMBUS_BUILD_EDITOR)
     target_link_libraries(nimbus_launcher PRIVATE
             editor::lib
+            nimbus::game
+            nimbus::deps
     )
 endif()
 
