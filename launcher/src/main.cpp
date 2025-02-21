@@ -67,5 +67,6 @@ int main() {
         window.display();
     }
 
+    rpmalloc_finalize();
     return EXIT_SUCCESS;
 }
